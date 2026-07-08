@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>NEXUS</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #000;
+    color: #cffafe;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 24px; }
+  .hidden { display: none !important; }
+  .logo-wrap { margin-bottom: 8px; }
+  h1.brand {
+    font-size: 2.4rem; font-weight: 300; letter-spacing: 0.25em;
+    color: #67e8f9; text-shadow: 0 0 20px rgba(34,211,238,0.6);
+    margin: 0 0 16px; text-align: center;
+  }
+  p.tag1 { color: rgba(207,250,254,0.7); font-size: 0.9rem; text-align: center; margin: 0 0 4px; }
+  p.tag2 { color: rgba(207,250,254,0.5); font-size: 0.78rem; text-align: center; margin: 0 0 32px; line-height: 1.5; }
+  .card { width: 100%; max-width: 360px; }
+  .node-label { color: rgba(6,182,212,0.7); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.2em; text-align: center; margin-bottom: 16px; }
+  button.node-btn {
+    width: 100%; background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.6);
+    color: #cffafe; font-family: inherit; font-weight: 500; font-size: 1rem;
+    border-radius: 10px; padding: 14px; margin-bottom: 12px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  button.node-btn:hover { background: rgba(22,78,99,0.4); border-color: #22d3ee; box-shadow: 0 0 15px rgba(34,211,238,0.25); }
+  button.node-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .error-msg { color: #f87171; font-size: 0.78rem; text-align: center; margin-top: 12px; line-height: 1.5; }
+  .footnote { color: #164e63; font-size: 0.72rem; text-align: center; margin-top: 32px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+  /* Chat */
+  .chat-app { display: flex; flex-direction: column; height: 100vh; }
+  header.chat-header {
+    border-bottom: 1px solid rgba(22,78,99,0.5); padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  header.chat-header .brand-mini { display: flex; align-items: center; gap: 8px; }
+  header.chat-header .brand-mini span { color: #67e8f9; font-size: 0.85rem; letter-spacing: 0.2em; text-shadow: 0 0 10px rgba(34,211,238,0.5); }
+  header.chat-header .who { color: #0e7490; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
+  .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .empty-msg { color: #164e63; font-size: 0.85rem; text-align: center; margin-top: 40px; }
+  .msg-row { display: flex; }
+  .msg-row.mine { justify-content: flex-end; }
+  .msg-row.theirs { justify-content: flex-start; }
+  .bubble { max-width: 75%; border-radius: 14px; padding: 8px 12px; font-size: 0.9rem; }
+  .bubble.mine { background: #22d3ee; color: #020617; }
+  .bubble.theirs { background: rgba(8,51,68,0.4); color: #cffafe; border: 1px solid rgba(21,94,117,0.5); }
+  .bubble .sender { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: #06b6d4; margin-bottom: 2px; }
+  .bubble .time { font-size: 0.62rem; margin-top: 4px; text-align: right; }
+  .bubble.mine .time { color: rgba(2,6,23,0.6); }
+  .bubble.theirs .time { color: #155e75; }
+  form.composer {
+    border-top: 1px solid rgba(22,78,99,0.5); padding: 12px; display: flex; gap: 8px; flex-shrink: 0;
+  }
+  form.composer input {
+    flex: 1; background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5);
+    border-radius: 10px; padding: 10px 14px; color: #ecfeff; font-family: inherit; font-size: 0.9rem;
+  }
+  form.composer input::placeholder { color: #155e75; }
+  form.composer input:focus { outline: none; border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34,211,238,0.3); }
+  form.composer button {
+    background: #22d3ee; border: none; border-radius: 10px; padding: 0 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  form.composer button:disabled { background: #083344; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div id="join-screen" class="screen">
+  <div class="card">
+    <div class="logo-wrap" style="display:flex; justify-content:center;">
+      <svg viewBox="0 0 200 120" width="160" height="96" fill="none">
+        <g stroke="#22d3ee" stroke-width="1" opacity="0.55">
+          <path d="M40 60 L100 20 L160 60 L100 40 Z" />
+          <path d="M40 60 L100 100 L160 60 L100 80 Z" />
+          <path d="M40 60 L100 20 L160 60 L100 100 Z" />
+        </g>
+        <line x1="40" y1="60" x2="160" y2="60" stroke="#67e8f9" stroke-width="2" />
+        <circle cx="40" cy="60" r="9" fill="#083344" stroke="#22d3ee" stroke-width="2" />
+        <circle cx="40" cy="60" r="4" fill="#a5f3fc" />
+        <circle cx="160" cy="60" r="9" fill="#083344" stroke="#22d3ee" stroke-width="2" />
+        <circle cx="160" cy="60" r="4" fill="#a5f3fc" />
+        <circle cx="40" cy="60" r="9" fill="none" stroke="#22d3ee" stroke-width="1">
+          <animate attributeName="r" values="9;18;9" dur="2.5s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="160" cy="60" r="9" fill="none" stroke="#22d3ee" stroke-width="1">
+          <animate attributeName="r" values="9;18;9" dur="2.5s" repeatCount="indefinite" begin="0.4s" />
+          <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" begin="0.4s" />
+        </circle>
+      </svg>
+    </div>
+    <h1 class="brand">NEXUS</h1>
+    <p class="tag1">Nexus fue creado pensando en ti.</p>
+    <p class="tag2">Nuestro punto de conexión segura — pase lo que pase,<br/>siempre hay una forma de encontrarnos.</p>
+
+    <p class="node-label">Elige tu nodo</p>
+    <button class="node-btn" id="btn-zapien">Zapien</button>
+    <button class="node-btn" id="btn-noriega">Noriega</button>
+    <p class="error-msg hidden" id="join-error"></p>
+
+    <p class="footnote">🔒 Toca el nombre de la otra persona, no el tuyo.</p>
+  </div>
+</div>
+
+<div id="chat-screen" class="chat-app hidden">
+  <header class="chat-header">
+    <div class="brand-mini">
+      <svg viewBox="0 0 200 120" width="32" height="19" fill="none">
+        <line x1="40" y1="60" x2="160" y2="60" stroke="#67e8f9" stroke-width="4" />
+        <circle cx="40" cy="60" r="14" fill="#083344" stroke="#22d3ee" stroke-width="3" />
+        <circle cx="160" cy="60" r="14" fill="#083344" stroke="#22d3ee" stroke-width="3" />
+      </svg>
+      <span>NEXUS</span>
+    </div>
+    <span class="who">🔒 <span id="mi-nombre"></span></span>
+  </header>
+
+  <div class="messages" id="messages"></div>
+
+  <form class="composer" id="composer">
+    <input id="draft" type="text" placeholder="Escribe un mensaje..." autocomplete="off" />
+    <button type="submit" id="send-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#020617" stroke-width="2.5">
+        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+      </svg>
+    </button>
+  </form>
+</div>
+
+<script>
+  const POLL_MS = 2500;
+  let miNombre = null;
+  let pollTimer = null;
+
+  const joinScreen = document.getElementById('join-screen');
+  const chatScreen = document.getElementById('chat-screen');
+  const joinError = document.getElementById('join-error');
+  const messagesEl = document.getElementById('messages');
+  const composer = document.getElementById('composer');
+  const draftInput = document.getElementById('draft');
+  const sendBtn = document.getElementById('send-btn');
+
+  document.getElementById('btn-zapien').addEventListener('click', () => join('Zapien'));
+  document.getElementById('btn-noriega').addEventListener('click', () => join('Noriega'));
+
+  async function join(nombreQueBuscas) {
+    joinError.classList.add('hidden');
+    document.getElementById('btn-zapien').disabled = true;
+    document.getElementById('btn-noriega').disabled = true;
+    try {
+      const res = await fetch('/api/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombreQueBuscas })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        joinError.textContent = data.error || 'No se pudo entrar.';
+        joinError.classList.remove('hidden');
+        document.getElementById('btn-zapien').disabled = false;
+        document.getElementById('btn-noriega').disabled = false;
+        return;
+      }
+      miNombre = data.miNombre;
+      document.getElementById('mi-nombre').textContent = miNombre;
+      joinScreen.classList.add('hidden');
+      chatScreen.classList.remove('hidden');
+      await refreshMessages();
+      pollTimer = setInterval(refreshMessages, POLL_MS);
+    } catch (e) {
+      joinError.textContent = 'Error de conexión. Intenta de nuevo.';
+      joinError.classList.remove('hidden');
+      document.getElementById('btn-zapien').disabled = false;
+      document.getElementById('btn-noriega').disabled = false;
+    }
+  }
+
+  async function refreshMessages() {
+    try {
+      const res = await fetch('/api/messages');
+      const msgs = await res.json();
+      renderMessages(msgs);
+    } catch (e) {
+      console.error('No se pudo actualizar', e);
+    }
+  }
+
+  function formatHora(ts) {
+    return new Date(ts).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function renderMessages(msgs) {
+    if (!msgs.length) {
+      messagesEl.innerHTML = '<p class="empty-msg">Todavía no hay mensajes. Escribe el primero.</p>';
+      return;
+    }
+    const wasAtBottom = messagesEl.scrollTop + messagesEl.clientHeight >= messagesEl.scrollHeight - 40;
+    messagesEl.innerHTML = msgs.map(m => {
+      const mine = m.de === miNombre;
+      return `
+        <div class="msg-row ${mine ? 'mine' : 'theirs'}">
+          <div class="bubble ${mine ? 'mine' : 'theirs'}">
+            ${!mine ? `<div class="sender">${escapeHtml(m.de)}</div>` : ''}
+            <div class="text">${escapeHtml(m.texto)}</div>
+            <div class="time">${formatHora(m.hora)}</div>
+          </div>
+        </div>`;
+    }).join('');
+    if (wasAtBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  composer.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const texto = draftInput.value.trim();
+    if (!texto) return;
+    draftInput.value = '';
+    sendBtn.disabled = true;
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ de: miNombre, texto })
+      });
+      const msgs = await res.json();
+      renderMessages(msgs);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    } catch (e) {
+      console.error('No se pudo enviar', e);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+      </html>
