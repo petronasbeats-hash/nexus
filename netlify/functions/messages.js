@@ -1,5 +1,7 @@
 import { getStore } from "@netlify/blobs";
 
+// Clave fija de la sala: no es editable desde el frontend, así que este
+// backend solo sirve una única conversación.
 const ROOM = "nexus-zapien-noriega";
 
 export default async (req) => {
@@ -24,7 +26,7 @@ export default async (req) => {
       });
     }
 
-    if (!body?.texto || !body?.de) {
+    if (!body?.de || (!body?.texto && !body?.sticker)) {
       return new Response(JSON.stringify({ error: "Faltan campos" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -35,9 +37,16 @@ export default async (req) => {
     const mensaje = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       de: body.de,
-      texto: String(body.texto).slice(0, 4000),
       hora: Date.now(),
     };
+    if (body.texto) {
+      mensaje.texto = String(body.texto).slice(0, 4000);
+    } else {
+      mensaje.sticker = {
+        packId: String(body.sticker.packId).slice(0, 60),
+        index: Number(body.sticker.index) || 0,
+      };
+    }
     const next = [...current, mensaje];
     await store.setJSON(key, next);
 
