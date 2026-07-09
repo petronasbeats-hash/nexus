@@ -125,7 +125,7 @@
       </svg>
       <span>NEXUS</span>
     </div>
-    <span class="who">🔒 <span id="mi-nombre"></span></span>
+    <span class="who">🔒 Mi nodo: <span id="mi-nombre"></span></span>
   </header>
 
   <div class="messages" id="messages"></div>
@@ -175,7 +175,7 @@
         return;
       }
       miNombre = data.miNombre;
-      document.getElementById('mi-nombre').textContent = miNombre;
+      document.getElementById('mi-nombre').textContent = nombreQueBuscas;
       joinScreen.classList.add('hidden');
       chatScreen.classList.remove('hidden');
       await refreshMessages();
@@ -244,3 +244,11 @@
       renderMessages(msgs);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     } catch (e) {
+      console.error('No se pudo enviar', e);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
