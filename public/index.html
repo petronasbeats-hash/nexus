@@ -40,7 +40,7 @@
   .footnote { color: #164e63; font-size: 0.72rem; text-align: center; margin-top: 32px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
   /* Chat */
-  .chat-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+  .chat-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; position: relative; }
   header.chat-header {
     border-bottom: 1px solid rgba(22,78,99,0.5); padding: 12px 16px;
     display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
@@ -60,8 +60,13 @@
   .bubble .time { font-size: 0.62rem; margin-top: 4px; text-align: right; }
   .bubble.mine .time { color: rgba(2,6,23,0.6); }
   .bubble.theirs .time { color: #155e75; }
+  .bubble.sticker-bubble { background: transparent; border: none; padding: 0; max-width: 45%; }
+  .bubble.sticker-bubble img { width: 100%; border-radius: 10px; display: block; }
+  .bubble.sticker-bubble .time { text-align: inherit; color: #155e75; margin-top: 2px; }
+
   form.composer {
     border-top: 1px solid rgba(22,78,99,0.5); padding: 12px; display: flex; gap: 8px; flex-shrink: 0;
+    position: relative;
   }
   form.composer input {
     flex: 1; background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5);
@@ -74,6 +79,37 @@
     display: flex; align-items: center; justify-content: center;
   }
   form.composer button:disabled { background: #083344; cursor: not-allowed; }
+  button.sticker-toggle {
+    background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5);
+    border-radius: 10px; padding: 0 12px; cursor: pointer; font-size: 1.1rem;
+    color: #67e8f9; flex-shrink: 0;
+  }
+
+  /* Panel de stickers */
+  .sticker-panel {
+    position: absolute; left: 0; right: 0; bottom: 100%;
+    background: #050b0e; border-top: 1px solid rgba(22,78,99,0.5);
+    max-height: 55vh; display: flex; flex-direction: column;
+  }
+  .sticker-tabs {
+    display: flex; gap: 6px; padding: 10px 10px 0; overflow-x: auto; flex-shrink: 0;
+  }
+  .sticker-tab {
+    background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5); color: #a5f3fc;
+    border-radius: 8px; padding: 6px 12px; font-size: 0.75rem; white-space: nowrap; cursor: pointer;
+  }
+  .sticker-tab.active { border-color: #22d3ee; background: rgba(34,211,238,0.15); }
+  .sticker-tab.add-tab { color: #67e8f9; font-weight: bold; }
+  .sticker-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    padding: 10px; overflow-y: auto;
+  }
+  .sticker-grid img {
+    width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 8px;
+    background: rgba(8,51,68,0.2); cursor: pointer; border: 1px solid transparent;
+  }
+  .sticker-grid img:active { border-color: #22d3ee; }
+  .sticker-empty { color: #164e63; font-size: 0.8rem; text-align: center; padding: 20px; }
 </style>
 </head>
 <body>
@@ -131,6 +167,11 @@
   <div class="messages" id="messages"></div>
 
   <form class="composer" id="composer">
+    <div class="sticker-panel hidden" id="sticker-panel">
+      <div class="sticker-tabs" id="sticker-tabs"></div>
+      <div class="sticker-grid" id="sticker-grid"></div>
+    </div>
+    <button type="button" class="sticker-toggle" id="sticker-toggle">🖼️</button>
     <input id="draft" type="text" placeholder="Escribe un mensaje..." autocomplete="off" />
     <button type="submit" id="send-btn">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#020617" stroke-width="2.5">
@@ -138,12 +179,15 @@
       </svg>
     </button>
   </form>
+  <input type="file" id="file-input" accept="image/*" multiple class="hidden" />
 </div>
 
 <script>
   const POLL_MS = 2500;
   let miNombre = null;
   let pollTimer = null;
+  let stickerPacks = [];
+  let activePackId = null;
 
   const joinScreen = document.getElementById('join-screen');
   const chatScreen = document.getElementById('chat-screen');
@@ -152,6 +196,11 @@
   const composer = document.getElementById('composer');
   const draftInput = document.getElementById('draft');
   const sendBtn = document.getElementById('send-btn');
+  const stickerToggle = document.getElementById('sticker-toggle');
+  const stickerPanel = document.getElementById('sticker-panel');
+  const stickerTabs = document.getElementById('sticker-tabs');
+  const stickerGrid = document.getElementById('sticker-grid');
+  const fileInput = document.getElementById('file-input');
 
   document.getElementById('btn-zapien').addEventListener('click', () => join('Zapien'));
   document.getElementById('btn-noriega').addEventListener('click', () => join('Noriega'));
@@ -179,6 +228,7 @@
       joinScreen.classList.add('hidden');
       chatScreen.classList.remove('hidden');
       await refreshMessages();
+      await loadStickerPacks();
       pollTimer = setInterval(refreshMessages, POLL_MS);
     } catch (e) {
       joinError.textContent = 'Error de conexión. Intenta de nuevo.';
@@ -202,6 +252,12 @@
     return new Date(ts).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
   }
 
+  function findSticker(packId, index) {
+    const pack = stickerPacks.find(p => p.id === packId);
+    if (!pack) return null;
+    return pack.stickers[index] || null;
+  }
+
   function renderMessages(msgs) {
     if (!msgs.length) {
       messagesEl.innerHTML = '<p class="empty-msg">Todavía no hay mensajes. Escribe el primero.</p>';
@@ -210,11 +266,22 @@
     const wasAtBottom = messagesEl.scrollTop + messagesEl.clientHeight >= messagesEl.scrollHeight - 40;
     messagesEl.innerHTML = msgs.map(m => {
       const mine = m.de === miNombre;
+      if (m.sticker) {
+        const src = findSticker(m.sticker.packId, m.sticker.index);
+        const img = src ? `<img src="${src}" alt="sticker" />` : `<div class="sticker-empty">sticker no disponible</div>`;
+        return `
+          <div class="msg-row ${mine ? 'mine' : 'theirs'}">
+            <div class="bubble sticker-bubble">
+              ${img}
+              <div class="time">${formatHora(m.hora)}</div>
+            </div>
+          </div>`;
+      }
       return `
         <div class="msg-row ${mine ? 'mine' : 'theirs'}">
           <div class="bubble ${mine ? 'mine' : 'theirs'}">
             ${!mine ? `<div class="sender">${escapeHtml(m.de)}</div>` : ''}
-            <div class="text">${escapeHtml(m.texto)}</div>
+            <div class="text">${escapeHtml(m.texto || '')}</div>
             <div class="time">${formatHora(m.hora)}</div>
           </div>
         </div>`;
@@ -235,20 +302,143 @@
     draftInput.value = '';
     sendBtn.disabled = true;
     try {
+      await enviarMensaje({ de: miNombre, texto });
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
+
+  async function enviarMensaje(payload) {
+    try {
       const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ de: miNombre, texto })
+        body: JSON.stringify(payload)
       });
       const msgs = await res.json();
       renderMessages(msgs);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     } catch (e) {
       console.error('No se pudo enviar', e);
+    }
+  }
+
+  // ---- Stickers ----
+
+  stickerToggle.addEventListener('click', () => {
+    stickerPanel.classList.toggle('hidden');
+  });
+
+  async function loadStickerPacks() {
+    try {
+      const res = await fetch('/api/stickers');
+      stickerPacks = await res.json();
+      if (!activePackId && stickerPacks.length) activePackId = stickerPacks[0].id;
+      renderStickerTabs();
+      renderStickerGrid();
+    } catch (e) {
+      console.error('No se pudieron cargar los stickers', e);
+    }
+  }
+
+  function renderStickerTabs() {
+    const tabsHtml = stickerPacks.map(p => `
+      <div class="sticker-tab ${p.id === activePackId ? 'active' : ''}" data-pack="${p.id}">${escapeHtml(p.nombre)}</div>
+    `).join('');
+    stickerTabs.innerHTML = tabsHtml + `<div class="sticker-tab add-tab" id="add-pack-tab">+ paquete</div>`;
+
+    stickerTabs.querySelectorAll('.sticker-tab[data-pack]').forEach(el => {
+      el.addEventListener('click', () => {
+        activePackId = el.dataset.pack;
+        renderStickerTabs();
+        renderStickerGrid();
+      });
+    });
+    document.getElementById('add-pack-tab').addEventListener('click', () => {
+      fileInput.click();
+    });
+  }
+
+  function renderStickerGrid() {
+    const pack = stickerPacks.find(p => p.id === activePackId);
+    if (!pack) {
+      stickerGrid.innerHTML = `<div class="sticker-empty">Todavía no hay paquetes.<br/>Toca "+ paquete" para subir el primero.</div>`;
+      return;
+    }
+    stickerGrid.innerHTML = pack.stickers.map((src, i) => `<img src="${src}" data-index="${i}" />`).join('');
+    stickerGrid.querySelectorAll('img').forEach(img => {
+      img.addEventListener('click', async () => {
+        stickerPanel.classList.add('hidden');
+        await enviarMensaje({
+          de: miNombre,
+          sticker: { packId: pack.id, index: Number(img.dataset.index) }
+        });
+      });
+    });
+  }
+
+  fileInput.addEventListener('change', async () => {
+    const files = Array.from(fileInput.files || []);
+    if (!files.length) return;
+    const nombre = prompt('¿Cómo se llama este paquete de stickers?', 'Mi paquete');
+    if (!nombre) { fileInput.value = ''; return; }
+
+    stickerToggle.disabled = true;
+    try {
+      const stickers = [];
+      for (const file of files.slice(0, 30)) {
+        const resized = await resizeImage(file, 320);
+        stickers.push(resized);
+      }
+      const res = await fetch('/api/stickers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, stickers })
+      });
+      const packs = await res.json();
+      if (Array.isArray(packs)) {
+        stickerPacks = packs;
+        activePackId = packs[packs.length - 1]?.id || activePackId;
+        renderStickerTabs();
+        renderStickerGrid();
+      }
+    } catch (e) {
+      console.error('No se pudo subir el paquete', e);
+      alert('No se pudo subir el paquete de stickers. Intenta con imágenes más ligeras.');
     } finally {
-      sendBtn.disabled = false;
+      stickerToggle.disabled = false;
+      fileInput.value = '';
     }
   });
+
+  function resizeImage(file, maxSize) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height && width > maxSize) {
+            height = Math.round(height * (maxSize / width));
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = Math.round(width * (maxSize / height));
+            height = maxSize;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/webp', 0.8));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 </script>
 </body>
 </html>
