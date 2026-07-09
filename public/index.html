@@ -8,107 +8,88 @@
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: #000;
-    color: #cffafe;
+    margin: 0; background: #000; color: #cffafe;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
+    height: 100vh; height: 100dvh; overflow: hidden;
   }
   .screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; height: 100dvh; padding: 24px; }
   .hidden { display: none !important; }
   .logo-wrap { margin-bottom: 8px; }
-  h1.brand {
-    font-size: 2.4rem; font-weight: 300; letter-spacing: 0.25em;
-    color: #67e8f9; text-shadow: 0 0 20px rgba(34,211,238,0.6);
-    margin: 0 0 16px; text-align: center;
-  }
+  h1.brand { font-size: 2.4rem; font-weight: 300; letter-spacing: 0.25em; color: #67e8f9; text-shadow: 0 0 20px rgba(34,211,238,0.6); margin: 0 0 16px; text-align: center; }
   p.tag1 { color: rgba(207,250,254,0.7); font-size: 0.9rem; text-align: center; margin: 0 0 4px; }
   p.tag2 { color: rgba(207,250,254,0.5); font-size: 0.78rem; text-align: center; margin: 0 0 32px; line-height: 1.5; }
   .card { width: 100%; max-width: 360px; }
   .node-label { color: rgba(6,182,212,0.7); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.2em; text-align: center; margin-bottom: 16px; }
-  button.node-btn {
-    width: 100%; background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.6);
-    color: #cffafe; font-family: inherit; font-weight: 500; font-size: 1rem;
-    border-radius: 10px; padding: 14px; margin-bottom: 12px; cursor: pointer;
-    transition: all 0.2s;
-  }
+  button.node-btn { width: 100%; background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.6); color: #cffafe; font-family: inherit; font-weight: 500; font-size: 1rem; border-radius: 10px; padding: 14px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
   button.node-btn:hover { background: rgba(22,78,99,0.4); border-color: #22d3ee; box-shadow: 0 0 15px rgba(34,211,238,0.25); }
   button.node-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .error-msg { color: #f87171; font-size: 0.78rem; text-align: center; margin-top: 12px; line-height: 1.5; }
   .footnote { color: #164e63; font-size: 0.72rem; text-align: center; margin-top: 32px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-  /* Chat */
   .chat-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; position: relative; }
-  header.chat-header {
-    border-bottom: 1px solid rgba(22,78,99,0.5); padding: 12px 16px;
-    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-  }
+  header.chat-header { border-bottom: 1px solid rgba(22,78,99,0.5); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   header.chat-header .brand-mini { display: flex; align-items: center; gap: 8px; }
   header.chat-header .brand-mini span { color: #67e8f9; font-size: 0.85rem; letter-spacing: 0.2em; text-shadow: 0 0 10px rgba(34,211,238,0.5); }
   header.chat-header .who { color: #0e7490; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
-  .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
   .empty-msg { color: #164e63; font-size: 0.85rem; text-align: center; margin-top: 40px; }
-  .msg-row { display: flex; }
-  .msg-row.mine { justify-content: flex-end; }
-  .msg-row.theirs { justify-content: flex-start; }
-  .bubble { max-width: 75%; border-radius: 14px; padding: 8px 12px; font-size: 0.9rem; }
+  .msg-row { display: flex; flex-direction: column; margin-bottom: 6px; }
+  .msg-row.mine { align-items: flex-end; }
+  .msg-row.theirs { align-items: flex-start; }
+  .bubble { max-width: 75%; border-radius: 14px; padding: 8px 12px; font-size: 0.9rem; position: relative; }
   .bubble.mine { background: #22d3ee; color: #020617; }
   .bubble.theirs { background: rgba(8,51,68,0.4); color: #cffafe; border: 1px solid rgba(21,94,117,0.5); }
   .bubble .sender { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: #06b6d4; margin-bottom: 2px; }
   .bubble .time { font-size: 0.62rem; margin-top: 4px; text-align: right; }
   .bubble.mine .time { color: rgba(2,6,23,0.6); }
   .bubble.theirs .time { color: #155e75; }
-  .bubble.sticker-bubble { background: transparent; border: none; padding: 0; max-width: 45%; }
-  .bubble.sticker-bubble img { width: 100%; border-radius: 10px; display: block; }
-  .bubble.sticker-bubble .time { text-align: inherit; color: #155e75; margin-top: 2px; }
+  .bubble.media-bubble { background: transparent; border: none; padding: 0; max-width: 65%; }
+  .bubble.media-bubble img { width: 100%; border-radius: 10px; display: block; }
+  .bubble.media-bubble .time { color: #155e75; margin-top: 2px; }
+  .bubble.audio-bubble { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+  .bubble.audio-bubble audio { width: 100%; height: 34px; }
 
-  form.composer {
-    border-top: 1px solid rgba(22,78,99,0.5); padding: 12px; display: flex; gap: 8px; flex-shrink: 0;
-    position: relative;
-  }
-  form.composer input {
-    flex: 1; background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5);
-    border-radius: 10px; padding: 10px 14px; color: #ecfeff; font-family: inherit; font-size: 0.9rem;
-  }
-  form.composer input::placeholder { color: #155e75; }
-  form.composer input:focus { outline: none; border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34,211,238,0.3); }
-  form.composer button {
-    background: #22d3ee; border: none; border-radius: 10px; padding: 0 14px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  form.composer button:disabled { background: #083344; cursor: not-allowed; }
-  button.sticker-toggle {
-    background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5);
-    border-radius: 10px; padding: 0 12px; cursor: pointer; font-size: 1.1rem;
-    color: #67e8f9; flex-shrink: 0;
-  }
+  .reaction-chips { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+  .reaction-chip { background: rgba(8,51,68,0.5); border: 1px solid rgba(21,94,117,0.6); border-radius: 20px; padding: 1px 7px; font-size: 0.72rem; cursor: pointer; }
+  .reaction-chip.mine-reacted { border-color: #22d3ee; background: rgba(34,211,238,0.15); }
 
-  /* Panel de stickers */
-  .sticker-panel {
+  .reaction-bar {
     position: absolute; left: 0; right: 0; bottom: 100%;
     background: #050b0e; border-top: 1px solid rgba(22,78,99,0.5);
-    max-height: 55vh; display: flex; flex-direction: column;
+    display: flex; justify-content: center; gap: 14px; padding: 10px;
   }
-  .sticker-tabs {
-    display: flex; gap: 6px; padding: 10px 10px 0; overflow-x: auto; flex-shrink: 0;
+  .reaction-bar span { font-size: 1.6rem; cursor: pointer; }
+
+  .typing-banner { color: #22d3ee; font-size: 0.72rem; padding: 4px 16px; height: 18px; flex-shrink: 0; }
+
+  form.composer { border-top: 1px solid rgba(22,78,99,0.5); padding: 10px 12px; display: flex; gap: 6px; flex-shrink: 0; position: relative; align-items: center; }
+  form.composer input[type=text] { flex: 1; background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5); border-radius: 10px; padding: 10px 14px; color: #ecfeff; font-family: inherit; font-size: 0.9rem; min-width: 0; }
+  form.composer input::placeholder { color: #155e75; }
+  form.composer input[type=text]:focus { outline: none; border-color: #22d3ee; box-shadow: 0 0 0 2px rgba(34,211,238,0.3); }
+  form.composer button.icon-btn, form.composer button#send-btn {
+    background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5); border-radius: 10px;
+    padding: 0 10px; height: 38px; cursor: pointer; font-size: 1.05rem; color: #67e8f9; flex-shrink: 0;
   }
-  .sticker-tab {
-    background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5); color: #a5f3fc;
-    border-radius: 8px; padding: 6px 12px; font-size: 0.75rem; white-space: nowrap; cursor: pointer;
+  form.composer button#send-btn { background: #22d3ee; color: #020617; }
+  form.composer button#send-btn:disabled { background: #083344; color: #155e75; cursor: not-allowed; }
+  form.composer button.icon-btn.recording { background: #b91c1c; border-color: #ef4444; color: #fff; }
+
+  .attach-menu, .sticker-panel {
+    position: absolute; left: 0; right: 0; bottom: 100%;
+    background: #050b0e; border-top: 1px solid rgba(22,78,99,0.5);
   }
+  .attach-menu { display: flex; flex-direction: column; }
+  .attach-option { padding: 14px; font-size: 0.9rem; color: #cffafe; cursor: pointer; border-bottom: 1px solid rgba(22,78,99,0.3); }
+  .attach-option:last-child { border-bottom: none; }
+
+  .sticker-panel { max-height: 55vh; display: flex; flex-direction: column; }
+  .sticker-tabs { display: flex; gap: 6px; padding: 10px 10px 0; overflow-x: auto; flex-shrink: 0; }
+  .sticker-tab { background: rgba(8,51,68,0.3); border: 1px solid rgba(21,94,117,0.5); color: #a5f3fc; border-radius: 8px; padding: 6px 12px; font-size: 0.75rem; white-space: nowrap; cursor: pointer; }
   .sticker-tab.active { border-color: #22d3ee; background: rgba(34,211,238,0.15); }
   .sticker-tab.add-tab { color: #67e8f9; font-weight: bold; }
-  .sticker-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-    padding: 10px; overflow-y: auto;
-  }
-  .sticker-grid img {
-    width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 8px;
-    background: rgba(8,51,68,0.2); cursor: pointer; border: 1px solid transparent;
-  }
-  .sticker-grid img:active { border-color: #22d3ee; }
+  .sticker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 10px; overflow-y: auto; }
+  .sticker-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 8px; background: rgba(8,51,68,0.2); cursor: pointer; border: 1px solid transparent; }
   .sticker-empty { color: #164e63; font-size: 0.8rem; text-align: center; padding: 20px; }
 </style>
 </head>
@@ -165,29 +146,50 @@
   </header>
 
   <div class="messages" id="messages"></div>
+  <div class="typing-banner" id="typing-banner"></div>
 
   <form class="composer" id="composer">
+    <div class="reaction-bar hidden" id="reaction-bar">
+      <span data-emoji="👍">👍</span><span data-emoji="❤️">❤️</span><span data-emoji="😂">😂</span>
+      <span data-emoji="😮">😮</span><span data-emoji="🔥">🔥</span><span data-emoji="👀">👀</span>
+    </div>
+    <div class="attach-menu hidden" id="attach-menu">
+      <div class="attach-option" id="opt-sticker">🖼️ Sticker</div>
+      <div class="attach-option" id="opt-photo">📷 Foto</div>
+    </div>
     <div class="sticker-panel hidden" id="sticker-panel">
       <div class="sticker-tabs" id="sticker-tabs"></div>
       <div class="sticker-grid" id="sticker-grid"></div>
     </div>
-    <button type="button" class="sticker-toggle" id="sticker-toggle">🖼️</button>
+
+    <button type="button" class="icon-btn" id="attach-toggle">➕</button>
+    <button type="button" class="icon-btn" id="record-btn">🎤</button>
+    <button type="button" class="icon-btn" id="pensando-btn">💭</button>
     <input id="draft" type="text" placeholder="Escribe un mensaje..." autocomplete="off" />
     <button type="submit" id="send-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#020617" stroke-width="2.5">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
       </svg>
     </button>
   </form>
   <input type="file" id="file-input" accept="image/*" multiple class="hidden" />
+  <input type="file" id="photo-input" accept="image/*" class="hidden" />
 </div>
 
 <script>
   const POLL_MS = 2500;
   let miNombre = null;
+  let miNodo = null;
   let pollTimer = null;
+  let typingTimer = null;
   let stickerPacks = [];
   let activePackId = null;
+  let lastMsgCount = 0;
+  let reactionTarget = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let titleFlashTimer = null;
+  const originalTitle = document.title;
 
   const joinScreen = document.getElementById('join-screen');
   const chatScreen = document.getElementById('chat-screen');
@@ -196,11 +198,19 @@
   const composer = document.getElementById('composer');
   const draftInput = document.getElementById('draft');
   const sendBtn = document.getElementById('send-btn');
-  const stickerToggle = document.getElementById('sticker-toggle');
+  const attachToggle = document.getElementById('attach-toggle');
+  const attachMenu = document.getElementById('attach-menu');
+  const optSticker = document.getElementById('opt-sticker');
+  const optPhoto = document.getElementById('opt-photo');
   const stickerPanel = document.getElementById('sticker-panel');
   const stickerTabs = document.getElementById('sticker-tabs');
   const stickerGrid = document.getElementById('sticker-grid');
   const fileInput = document.getElementById('file-input');
+  const photoInput = document.getElementById('photo-input');
+  const recordBtn = document.getElementById('record-btn');
+  const pensandoBtn = document.getElementById('pensando-btn');
+  const typingBanner = document.getElementById('typing-banner');
+  const reactionBar = document.getElementById('reaction-bar');
 
   document.getElementById('btn-zapien').addEventListener('click', () => join('Zapien'));
   document.getElementById('btn-noriega').addEventListener('click', () => join('Noriega'));
@@ -224,12 +234,16 @@
         return;
       }
       miNombre = data.miNombre;
-      document.getElementById('mi-nombre').textContent = nombreQueBuscas;
+      miNodo = nombreQueBuscas;
+      document.getElementById('mi-nombre').textContent = miNodo;
       joinScreen.classList.add('hidden');
       chatScreen.classList.remove('hidden');
-      await refreshMessages();
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+      await refreshMessages(true);
       await loadStickerPacks();
-      pollTimer = setInterval(refreshMessages, POLL_MS);
+      pollTimer = setInterval(() => { refreshMessages(false); pollTyping(); }, POLL_MS);
     } catch (e) {
       joinError.textContent = 'Error de conexión. Intenta de nuevo.';
       joinError.classList.remove('hidden');
@@ -238,15 +252,75 @@
     }
   }
 
-  async function refreshMessages() {
+  async function refreshMessages(esInicial) {
     try {
       const res = await fetch('/api/messages');
       const msgs = await res.json();
+      if (!esInicial && msgs.length > lastMsgCount) {
+        const nuevo = msgs[msgs.length - 1];
+        if (nuevo.de !== miNombre) notificarNuevoMensaje(nuevo);
+      }
+      lastMsgCount = msgs.length;
       renderMessages(msgs);
     } catch (e) {
       console.error('No se pudo actualizar', e);
     }
   }
+
+  function notificarNuevoMensaje(msg) {
+    let preview = 'Nuevo mensaje';
+    if (msg.texto) preview = msg.texto;
+    else if (msg.sticker) preview = 'te mandó un sticker';
+    else if (msg.imagen) preview = 'te mandó una foto';
+    else if (msg.audio) preview = 'te mandó una nota de voz';
+
+    if (document.hidden || !document.hasFocus()) {
+      startTitleFlash();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try { new Notification('NEXUS', { body: preview }); } catch (e) {}
+      }
+    }
+  }
+
+  function startTitleFlash() {
+    if (titleFlashTimer) return;
+    let on = false;
+    titleFlashTimer = setInterval(() => {
+      document.title = on ? originalTitle : '💬 Nuevo mensaje';
+      on = !on;
+    }, 1000);
+  }
+  function stopTitleFlash() {
+    if (titleFlashTimer) { clearInterval(titleFlashTimer); titleFlashTimer = null; }
+    document.title = originalTitle;
+  }
+  window.addEventListener('focus', stopTitleFlash);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) stopTitleFlash(); });
+
+  async function pollTyping() {
+    try {
+      const res = await fetch('/api/typing');
+      const data = await res.json();
+      if (data && data.de !== miNombre) {
+        typingBanner.textContent = `${miNodo} está escribiendo...`;
+      } else {
+        typingBanner.textContent = '';
+      }
+    } catch (e) {}
+  }
+
+  let lastTypingPost = 0;
+  draftInput.addEventListener('input', () => {
+    const now = Date.now();
+    if (now - lastTypingPost > 1500) {
+      lastTypingPost = now;
+      fetch('/api/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ de: miNombre })
+      }).catch(() => {});
+    }
+  });
 
   function formatHora(ts) {
     return new Date(ts).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
@@ -258,6 +332,17 @@
     return pack.stickers[index] || null;
   }
 
+  function renderReactionChips(m) {
+    if (!m.reacciones) return '';
+    const chips = Object.entries(m.reacciones)
+      .filter(([, lista]) => lista.length > 0)
+      .map(([emoji, lista]) => {
+        const mineReacted = lista.includes(miNombre);
+        return `<span class="reaction-chip ${mineReacted ? 'mine-reacted' : ''}" data-id="${m.id}" data-emoji="${emoji}">${emoji} ${lista.length}</span>`;
+      }).join('');
+    return chips ? `<div class="reaction-chips">${chips}</div>` : '';
+  }
+
   function renderMessages(msgs) {
     if (!msgs.length) {
       messagesEl.innerHTML = '<p class="empty-msg">Todavía no hay mensajes. Escribe el primero.</p>';
@@ -266,27 +351,22 @@
     const wasAtBottom = messagesEl.scrollTop + messagesEl.clientHeight >= messagesEl.scrollHeight - 40;
     messagesEl.innerHTML = msgs.map(m => {
       const mine = m.de === miNombre;
+      let inner;
       if (m.sticker) {
         const src = findSticker(m.sticker.packId, m.sticker.index);
-        const img = src ? `<img src="${src}" alt="sticker" />` : `<div class="sticker-empty">sticker no disponible</div>`;
-        return `
-          <div class="msg-row ${mine ? 'mine' : 'theirs'}">
-            <div class="bubble sticker-bubble">
-              ${img}
-              <div class="time">${formatHora(m.hora)}</div>
-            </div>
-          </div>`;
+        inner = `<div class="bubble media-bubble" data-id="${m.id}">${src ? `<img src="${src}" alt="sticker"/>` : '<div class="sticker-empty">sticker no disponible</div>'}<div class="time">${formatHora(m.hora)}</div></div>`;
+      } else if (m.imagen) {
+        inner = `<div class="bubble media-bubble" data-id="${m.id}"><img src="${m.imagen}" alt="foto"/><div class="time">${formatHora(m.hora)}</div></div>`;
+      } else if (m.audio) {
+        inner = `<div class="bubble audio-bubble ${mine ? 'mine' : 'theirs'}" data-id="${m.id}"><audio controls src="${m.audio}"></audio><div class="time">${formatHora(m.hora)}</div></div>`;
+      } else {
+        inner = `<div class="bubble ${mine ? 'mine' : 'theirs'}" data-id="${m.id}">${!mine ? `<div class="sender">${escapeHtml(m.de)}</div>` : ''}<div class="text">${escapeHtml(m.texto || '')}</div><div class="time">${formatHora(m.hora)}</div></div>`;
       }
-      return `
-        <div class="msg-row ${mine ? 'mine' : 'theirs'}">
-          <div class="bubble ${mine ? 'mine' : 'theirs'}">
-            ${!mine ? `<div class="sender">${escapeHtml(m.de)}</div>` : ''}
-            <div class="text">${escapeHtml(m.texto || '')}</div>
-            <div class="time">${formatHora(m.hora)}</div>
-          </div>
-        </div>`;
+      return `<div class="msg-row ${mine ? 'mine' : 'theirs'}">${inner}${renderReactionChips(m)}</div>`;
     }).join('');
     if (wasAtBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
+    attachLongPress();
+    attachChipListeners();
   }
 
   function escapeHtml(str) {
@@ -295,17 +375,15 @@
     return div.innerHTML;
   }
 
+  // ---- Envío de mensajes ----
   composer.addEventListener('submit', async (e) => {
     e.preventDefault();
     const texto = draftInput.value.trim();
     if (!texto) return;
     draftInput.value = '';
     sendBtn.disabled = true;
-    try {
-      await enviarMensaje({ de: miNombre, texto });
-    } finally {
-      sendBtn.disabled = false;
-    }
+    try { await enviarMensaje({ de: miNombre, texto }); }
+    finally { sendBtn.disabled = false; }
   });
 
   async function enviarMensaje(payload) {
@@ -316,129 +394,9 @@
         body: JSON.stringify(payload)
       });
       const msgs = await res.json();
+      lastMsgCount = msgs.length;
       renderMessages(msgs);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     } catch (e) {
       console.error('No se pudo enviar', e);
-    }
-  }
-
-  // ---- Stickers ----
-
-  stickerToggle.addEventListener('click', () => {
-    stickerPanel.classList.toggle('hidden');
-  });
-
-  async function loadStickerPacks() {
-    try {
-      const res = await fetch('/api/stickers');
-      stickerPacks = await res.json();
-      if (!activePackId && stickerPacks.length) activePackId = stickerPacks[0].id;
-      renderStickerTabs();
-      renderStickerGrid();
-    } catch (e) {
-      console.error('No se pudieron cargar los stickers', e);
-    }
-  }
-
-  function renderStickerTabs() {
-    const tabsHtml = stickerPacks.map(p => `
-      <div class="sticker-tab ${p.id === activePackId ? 'active' : ''}" data-pack="${p.id}">${escapeHtml(p.nombre)}</div>
-    `).join('');
-    stickerTabs.innerHTML = tabsHtml + `<div class="sticker-tab add-tab" id="add-pack-tab">+ paquete</div>`;
-
-    stickerTabs.querySelectorAll('.sticker-tab[data-pack]').forEach(el => {
-      el.addEventListener('click', () => {
-        activePackId = el.dataset.pack;
-        renderStickerTabs();
-        renderStickerGrid();
-      });
-    });
-    document.getElementById('add-pack-tab').addEventListener('click', () => {
-      fileInput.click();
-    });
-  }
-
-  function renderStickerGrid() {
-    const pack = stickerPacks.find(p => p.id === activePackId);
-    if (!pack) {
-      stickerGrid.innerHTML = `<div class="sticker-empty">Todavía no hay paquetes.<br/>Toca "+ paquete" para subir el primero.</div>`;
-      return;
-    }
-    stickerGrid.innerHTML = pack.stickers.map((src, i) => `<img src="${src}" data-index="${i}" />`).join('');
-    stickerGrid.querySelectorAll('img').forEach(img => {
-      img.addEventListener('click', async () => {
-        stickerPanel.classList.add('hidden');
-        await enviarMensaje({
-          de: miNombre,
-          sticker: { packId: pack.id, index: Number(img.dataset.index) }
-        });
-      });
-    });
-  }
-
-  fileInput.addEventListener('change', async () => {
-    const files = Array.from(fileInput.files || []);
-    if (!files.length) return;
-    const nombre = prompt('¿Cómo se llama este paquete de stickers?', 'Mi paquete');
-    if (!nombre) { fileInput.value = ''; return; }
-
-    stickerToggle.disabled = true;
-    try {
-      const stickers = [];
-      for (const file of files.slice(0, 30)) {
-        const resized = await resizeImage(file, 320);
-        stickers.push(resized);
-      }
-      const res = await fetch('/api/stickers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, stickers })
-      });
-      const packs = await res.json();
-      if (Array.isArray(packs)) {
-        stickerPacks = packs;
-        activePackId = packs[packs.length - 1]?.id || activePackId;
-        renderStickerTabs();
-        renderStickerGrid();
-      }
-    } catch (e) {
-      console.error('No se pudo subir el paquete', e);
-      alert('No se pudo subir el paquete de stickers. Intenta con imágenes más ligeras.');
-    } finally {
-      stickerToggle.disabled = false;
-      fileInput.value = '';
-    }
-  });
-
-  function resizeImage(file, maxSize) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          let { width, height } = img;
-          if (width > height && width > maxSize) {
-            height = Math.round(height * (maxSize / width));
-            width = maxSize;
-          } else if (height > maxSize) {
-            width = Math.round(width * (maxSize / height));
-            height = maxSize;
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/webp', 0.8));
-        };
-        img.onerror = reject;
-        img.src = reader.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-</script>
-</body>
-</html>
+ 
