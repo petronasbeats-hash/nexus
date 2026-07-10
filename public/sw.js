@@ -1,5 +1,5 @@
-const CACHE = "nexus-shell-v1";
-const SHELL = ["/", "/manifest.json", "/icon-192.png", "/icon-512.png"];
+const CACHE = "nexus-shell-v2";
+const SHELL = ["/", "/manifest.json", "/icon-192.png", "/icon-512.png", "/logo-nexus.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
