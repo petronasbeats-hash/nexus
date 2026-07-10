@@ -399,4 +399,198 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     } catch (e) {
       console.error('No se pudo enviar', e);
- 
+    }
+  }
+
+  pensandoBtn.addEventListener('click', () => {
+    enviarMensaje({ de: miNombre, texto: '💭 Pensando en ti' });
+  });
+
+  // ---- Menú adjuntar (sticker / foto) ----
+  attachToggle.addEventListener('click', () => {
+    closeAllPanels(attachMenu.classList.contains('hidden') ? attachMenu : null);
+  });
+  optSticker.addEventListener('click', () => { closeAllPanels(stickerPanel); });
+  optPhoto.addEventListener('click', () => { closeAllPanels(null); photoInput.click(); });
+
+  function closeAllPanels(panelToShow) {
+    attachMenu.classList.add('hidden');
+    stickerPanel.classList.add('hidden');
+    reactionBar.classList.add('hidden');
+    if (panelToShow) panelToShow.classList.remove('hidden');
+  }
+
+  // ---- Stickers ----
+  async function loadStickerPacks() {
+    try {
+      const res = await fetch('/api/stickers');
+      stickerPacks = await res.json();
+      if (!activePackId && stickerPacks.length) activePackId = stickerPacks[0].id;
+      renderStickerTabs();
+      renderStickerGrid();
+    } catch (e) { console.error('No se pudieron cargar los stickers', e); }
+  }
+
+  function renderStickerTabs() {
+    const tabsHtml = stickerPacks.map(p => `<div class="sticker-tab ${p.id === activePackId ? 'active' : ''}" data-pack="${p.id}">${escapeHtml(p.nombre)}</div>`).join('');
+    stickerTabs.innerHTML = tabsHtml + `<div class="sticker-tab add-tab" id="add-pack-tab">+ paquete</div>`;
+    stickerTabs.querySelectorAll('.sticker-tab[data-pack]').forEach(el => {
+      el.addEventListener('click', () => { activePackId = el.dataset.pack; renderStickerTabs(); renderStickerGrid(); });
+    });
+    document.getElementById('add-pack-tab').addEventListener('click', () => fileInput.click());
+  }
+
+  function renderStickerGrid() {
+    const pack = stickerPacks.find(p => p.id === activePackId);
+    if (!pack) { stickerGrid.innerHTML = `<div class="sticker-empty">Todavía no hay paquetes.<br/>Toca "+ paquete" para subir el primero.</div>`; return; }
+    stickerGrid.innerHTML = pack.stickers.map((src, i) => `<img src="${src}" data-index="${i}" />`).join('');
+    stickerGrid.querySelectorAll('img').forEach(img => {
+      img.addEventListener('click', async () => {
+        closeAllPanels(null);
+        await enviarMensaje({ de: miNombre, sticker: { packId: pack.id, index: Number(img.dataset.index) } });
+      });
+    });
+  }
+
+  fileInput.addEventListener('change', async () => {
+    const files = Array.from(fileInput.files || []);
+    if (!files.length) return;
+    const nombre = prompt('¿Cómo se llama este paquete de stickers?', 'Mi paquete');
+    if (!nombre) { fileInput.value = ''; return; }
+    attachToggle.disabled = true;
+    try {
+      const stickers = [];
+      for (const file of files.slice(0, 30)) stickers.push(await resizeImage(file, 320, 0.8));
+      const res = await fetch('/api/stickers', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, stickers })
+      });
+      const packs = await res.json();
+      if (Array.isArray(packs)) {
+        stickerPacks = packs;
+        activePackId = packs[packs.length - 1]?.id || activePackId;
+        renderStickerTabs(); renderStickerGrid();
+      }
+    } catch (e) {
+      alert('No se pudo subir el paquete. Intenta con imágenes más ligeras.');
+    } finally { attachToggle.disabled = false; fileInput.value = ''; }
+  });
+
+  // ---- Foto normal ----
+  photoInput.addEventListener('change', async () => {
+    const file = photoInput.files && photoInput.files[0];
+    if (!file) return;
+    sendBtn.disabled = true;
+    try {
+      const imagen = await resizeImage(file, 900, 0.82);
+      await enviarMensaje({ de: miNombre, imagen });
+    } catch (e) {
+      alert('No se pudo enviar la foto.');
+    } finally { sendBtn.disabled = false; photoInput.value = ''; }
+  });
+
+  function resizeImage(file, maxSize, calidad) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height && width > maxSize) { height = Math.round(height * (maxSize / width)); width = maxSize; }
+          else if (height > maxSize) { width = Math.round(width * (maxSize / height)); height = maxSize; }
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/webp', calidad));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---- Notas de voz ----
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        if (blob.size < 200) return;
+        const reader = new FileReader();
+        reader.onload = async () => {
+          await enviarMensaje({ de: miNombre, audio: reader.result });
+        };
+        reader.readAsDataURL(blob);
+      };
+      mediaRecorder.start();
+      recordBtn.classList.add('recording');
+      recordBtn.textContent = '🔴';
+    } catch (e) {
+      alert('No se pudo acceder al micrófono.');
+    }
+  }
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    recordBtn.classList.remove('recording');
+    recordBtn.textContent = '🎤';
+  }
+  recordBtn.addEventListener('mousedown', startRecording);
+  recordBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+  recordBtn.addEventListener('mouseup', stopRecording);
+  recordBtn.addEventListener('mouseleave', stopRecording);
+  recordBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
+
+  // ---- Reacciones (mantener presionado un mensaje) ----
+  function attachLongPress() {
+    document.querySelectorAll('.bubble[data-id]').forEach(bubble => {
+      let timer;
+      const start = () => { timer = setTimeout(() => openReactionBar(bubble.dataset.id), 450); };
+      const cancel = () => clearTimeout(timer);
+      bubble.addEventListener('touchstart', start);
+      bubble.addEventListener('touchend', cancel);
+      bubble.addEventListener('touchmove', cancel);
+      bubble.addEventListener('mousedown', start);
+      bubble.addEventListener('mouseup', cancel);
+      bubble.addEventListener('mouseleave', cancel);
+    });
+  }
+
+  function attachChipListeners() {
+    document.querySelectorAll('.reaction-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        reaccionar(chip.dataset.id, chip.dataset.emoji);
+      });
+    });
+  }
+
+  function openReactionBar(messageId) {
+    reactionTarget = messageId;
+    closeAllPanels(reactionBar);
+  }
+
+  reactionBar.querySelectorAll('span[data-emoji]').forEach(span => {
+    span.addEventListener('click', () => {
+      if (reactionTarget) reaccionar(reactionTarget, span.dataset.emoji);
+      closeAllPanels(null);
+    });
+  });
+
+  async function reaccionar(messageId, emoji) {
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'reaccionar', messageId, emoji, de: miNombre })
+      });
+      const msgs = await res.json();
+      renderMessages(msgs);
+    } catch (e) {}
+  }
+</script>
+</body>
+</html>
