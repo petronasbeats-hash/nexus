@@ -1,5 +1,5 @@
 const CACHE = "nexus-shell-v1";
-const SHELL = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
+const SHELL = ["/", "/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
@@ -17,10 +17,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
-
-  // Las llamadas a la API nunca se sirven desde caché: siempre datos frescos.
   if (url.pathname.startsWith("/api/")) return;
-
   event.respondWith(
     caches.match(event.request).then(
       (cached) =>
