@@ -20,6 +20,8 @@
   h1.brand { font-size: 2.4rem; font-weight: 300; letter-spacing: 0.25em; color: #67e8f9; text-shadow: 0 0 20px rgba(34,211,238,0.6); margin: 0 0 16px; text-align: center; }
   p.tag1 { color: rgba(207,250,254,0.7); font-size: 0.9rem; text-align: center; margin: 0 0 4px; }
   p.tag2 { color: rgba(207,250,254,0.5); font-size: 0.78rem; text-align: center; margin: 0 0 20px; line-height: 1.5; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+  #phrase-canvas { display: block; width: 100%; height: 78px; margin: 0 0 20px; }
   p.counter { color: #22d3ee; font-size: 0.72rem; text-align: center; margin: 0 0 28px; letter-spacing: 0.05em; min-height: 16px; }
   .card { width: 100%; max-width: 360px; }
   .node-label { color: rgba(6,182,212,0.7); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.2em; text-align: center; margin-bottom: 16px; }
@@ -135,7 +137,8 @@
     </div>
     <h1 class="brand">NEXUS</h1>
     <p class="tag1">Nexus fue creado pensando en ti.</p>
-    <p class="tag2">Nuestro punto de conexión segura — pase lo que pase,<br/>siempre hay una forma de encontrarnos.</p>
+    <p class="tag2 sr-only">Un nodo no es un lugar. Es alguien que decidiste no perder.</p>
+    <canvas id="phrase-canvas" aria-hidden="true"></canvas>
     <p class="counter" id="counter"></p>
 
     <div class="nodes-row">
@@ -316,7 +319,65 @@
 
   function stopParticles() {
     if (particlesRAF) cancelAnimationFrame(particlesRAF);
+    if (phraseRAF) cancelAnimationFrame(phraseRAF);
   }
+
+  // ---- Frase que se arma con partículas ----
+  let phraseRAF = null;
+  function initPhraseParticles() {
+    const canvas = document.getElementById('phrase-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width = canvas.offsetWidth;
+    const h = canvas.height = canvas.offsetHeight;
+
+    // Dibujar la frase en un canvas oculto para saber dónde va cada letra
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    const octx = off.getContext('2d');
+    octx.fillStyle = '#fff';
+    octx.textAlign = 'center';
+    octx.textBaseline = 'middle';
+    octx.font = '600 12px ui-monospace, Menlo, Consolas, monospace';
+    octx.fillText('Un nodo no es un lugar.', w / 2, h * 0.28);
+    octx.fillText('Es alguien que decidiste', w / 2, h * 0.62);
+    octx.fillText('no perder.', w / 2, h * 0.92);
+
+    const data = octx.getImageData(0, 0, w, h).data;
+    const targets = [];
+    const stride = 2;
+    for (let y = 0; y < h; y += stride) {
+      for (let x = 0; x < w; x += stride) {
+        if (data[(y * w + x) * 4 + 3] > 120) targets.push({ x, y });
+      }
+    }
+
+    const particles = targets.map(t => ({
+      x: Math.random() * w,
+      y: (Math.random() < 0.5 ? -20 : h + 20) + (Math.random() - 0.5) * 40,
+      tx: t.x,
+      ty: t.y,
+      op: 0,
+    }));
+
+    function tick() {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of particles) {
+        p.x += (p.tx - p.x) * 0.06;
+        p.y += (p.ty - p.y) * 0.06;
+        const dist = Math.hypot(p.tx - p.x, p.ty - p.y);
+        const target = dist < 3 ? 0.85 : 0.5;
+        p.op += (target - p.op) * 0.08;
+        ctx.fillStyle = `rgba(103,232,249,${p.op})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      phraseRAF = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+  initPhraseParticles();
 
   async function join(nombreQueBuscas) {
     joinError.classList.add('hidden');
