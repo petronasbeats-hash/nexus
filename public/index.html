@@ -100,6 +100,51 @@
   .partner-status .status-line { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: #67e8f9; }
   .partner-status .last-seen { font-size: 0.64rem; color: #164e63; }
 
+  .header-actions { display: flex; align-items: center; gap: 12px; }
+  .call-btn {
+    background: rgba(8,51,68,0.4); border: 1px solid rgba(34,211,238,0.4); color: #67e8f9;
+    border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+  }
+  .call-btn:hover, .call-btn:active { background: rgba(34,211,238,0.2); box-shadow: 0 0 12px rgba(34,211,238,0.4); }
+  .call-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .call-overlay {
+    position: fixed; inset: 0; z-index: 60; background: rgba(2,6,10,0.97);
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  }
+  .call-overlay.hidden { display: none; }
+  .call-panel { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  .call-panel.hidden { display: none; }
+  .call-avatar-pulse {
+    font-size: 2.6rem; width: 92px; height: 92px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: rgba(8,51,68,0.5); border: 2px solid #22d3ee; animation: call-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes call-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34,211,238,0.5); }
+    50% { box-shadow: 0 0 0 18px rgba(34,211,238,0); }
+  }
+  .call-title { color: #cffafe; font-size: 1rem; text-align: center; margin: 0; }
+  .call-actions { display: flex; gap: 30px; }
+  .call-action { width: 58px; height: 58px; border-radius: 50%; border: none; font-size: 1.3rem; cursor: pointer; color: #fff; }
+  .call-action.accept { background: #16a34a; }
+  .call-action.decline { background: #dc2626; }
+  .call-video-wrap { position: relative; width: 100%; height: 100%; display: none; }
+  .call-video-wrap.active { display: block; }
+  .call-video-wrap video#remote-video { width: 100%; height: 100%; object-fit: cover; background: #000; }
+  .call-video-wrap video#local-video {
+    position: absolute; bottom: 110px; right: 16px; width: 104px; height: 142px; object-fit: cover;
+    border-radius: 14px; border: 2px solid #22d3ee; background: #000;
+  }
+  .call-controls { position: absolute; bottom: 26px; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; }
+  .call-icon-btn {
+    width: 52px; height: 52px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.1); color: #fff; font-size: 1.2rem; cursor: pointer;
+  }
+  .call-icon-btn.hangup { background: #dc2626; border-color: #dc2626; }
+  .call-error { color: #f87171; font-size: 0.8rem; text-align: center; padding: 0 20px; }
+  .call-error.hidden { display: none; }
+
   .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
   .empty-msg { color: #164e63; font-size: 0.85rem; text-align: center; margin-top: 40px; }
   .msg-row { display: flex; flex-direction: column; margin-bottom: 6px; }
@@ -198,9 +243,14 @@
       <span>NEXUS</span>
       <span class="streak-badge hidden" id="streak-badge"></span>
     </div>
-    <div class="partner-status">
-      <span class="status-line"><span class="status-dot" id="partner-dot"></span><span id="partner-name"></span></span>
-      <span class="last-seen" id="partner-lastseen"></span>
+    <div class="header-actions">
+      <button type="button" class="call-btn" id="call-btn" title="Videollamada" aria-label="Iniciar videollamada">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l5-3v10l-5-3M4 6h9a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+      </button>
+      <div class="partner-status">
+        <span class="status-line"><span class="status-dot" id="partner-dot"></span><span id="partner-name"></span></span>
+        <span class="last-seen" id="partner-lastseen"></span>
+      </div>
     </div>
   </header>
 
@@ -235,6 +285,36 @@
   <input type="file" id="photo-input" accept="image/*" class="hidden" />
 </div>
 
+<div class="call-overlay hidden" id="call-overlay">
+  <div class="call-panel" id="call-panel-entrante">
+    <div class="call-avatar-pulse">📞</div>
+    <p class="call-title">Llamada entrante de <span id="call-caller-name"></span></p>
+    <div class="call-actions">
+      <button type="button" class="call-action decline" id="btn-rechazar-llamada" aria-label="Rechazar">✕</button>
+      <button type="button" class="call-action accept" id="btn-aceptar-llamada" aria-label="Aceptar">✓</button>
+    </div>
+  </div>
+
+  <div class="call-panel hidden" id="call-panel-saliente">
+    <div class="call-avatar-pulse">📞</div>
+    <p class="call-title">Llamando…</p>
+    <button type="button" class="call-action decline" id="btn-cancelar-llamada" aria-label="Cancelar">✕</button>
+  </div>
+
+  <div class="call-video-wrap" id="call-video-wrap">
+    <video id="remote-video" autoplay playsinline></video>
+    <video id="local-video" autoplay playsinline muted></video>
+    <div class="call-controls">
+      <button type="button" class="call-icon-btn" id="btn-toggle-mic">🎙️</button>
+      <button type="button" class="call-icon-btn" id="btn-toggle-cam">🎥</button>
+      <button type="button" class="call-icon-btn hangup" id="btn-colgar" aria-label="Colgar">✕</button>
+    </div>
+  </div>
+
+  <p class="call-error hidden" id="call-error"></p>
+</div>
+
+
 <script>
   const POLL_MS = 2500;
   let miNombre = null;
@@ -256,683 +336,12 @@
   let partnerWasOnline = null;
   let audioCtx = null;
 
-  const joinScreen = document.getElementById('join-screen');
-  const chatScreen = document.getElementById('chat-screen');
-  const joinError = document.getElementById('join-error');
-  const messagesEl = document.getElementById('messages');
-  const composer = document.getElementById('composer');
-  const draftInput = document.getElementById('draft');
-  const sendBtn = document.getElementById('send-btn');
-  const attachToggle = document.getElementById('attach-toggle');
-  const attachMenu = document.getElementById('attach-menu');
-  const optSticker = document.getElementById('opt-sticker');
-  const optPhoto = document.getElementById('opt-photo');
-  const stickerPanel = document.getElementById('sticker-panel');
-  const stickerTabs = document.getElementById('sticker-tabs');
-  const stickerGrid = document.getElementById('sticker-grid');
-  const fileInput = document.getElementById('file-input');
-  const photoInput = document.getElementById('photo-input');
-  const recordBtn = document.getElementById('record-btn');
-  const pensandoBtn = document.getElementById('pensando-btn');
-  const typingBanner = document.getElementById('typing-banner');
-  const reactionBar = document.getElementById('reaction-bar');
-
-  const nodeInput = document.getElementById('node-input');
-  const animOverlay = document.getElementById('anim-overlay');
-  const animIcon = document.getElementById('anim-icon');
-  let animLock = false;
-
-  function normalizarNodo(s) {
-    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  }
-
-  function dispararAnimacionNodo(tipo, nombreQueBuscas) {
-    if (animLock) return;
-    animLock = true;
-    desbloquearAudio();
-    nodeInput.disabled = true;
-    animIcon.textContent = tipo === 'rayo' ? '⚡' : '🔥';
-    animIcon.className = 'anim-icon ' + tipo;
-    animOverlay.classList.remove('hidden');
-    animOverlay.classList.toggle('rayo-flash', tipo === 'rayo');
-    setTimeout(() => {
-      animOverlay.classList.add('hidden');
-      animOverlay.classList.remove('rayo-flash');
-      animIcon.className = 'anim-icon';
-      join(nombreQueBuscas);
-    }, 900);
-  }
-
-  function manejarInputNodo() {
-    const val = normalizarNodo(nodeInput.value);
-    if (val === 'zapien') {
-      dispararAnimacionNodo('rayo', 'Zapien');
-    } else if (val === 'noriega') {
-      dispararAnimacionNodo('llama', 'Noriega');
-    }
-  }
-
-  nodeInput.addEventListener('input', manejarInputNodo);
-  nodeInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') manejarInputNodo();
-  });
-
-  // ---- Contador real de conexión ----
-  async function loadCounter() {
-    const counterEl = document.getElementById('counter');
-    try {
-      const res = await fetch('/api/messages');
-      const msgs = await res.json();
-      if (!msgs.length) {
-        counterEl.textContent = 'Este es el inicio de nuestra conexión.';
-        return;
-      }
-      const primero = msgs[0].hora;
-      const dias = Math.max(1, Math.ceil((Date.now() - primero) / 86400000));
-      const etiquetaDias = dias === 1 ? 'hace 1 día' : `hace ${dias} días`;
-      const etiquetaMsgs = msgs.length === 1 ? '1 mensaje' : `${msgs.length} mensajes`;
-      const racha = calcularRacha(msgs);
-      const etiquetaRacha = racha >= 2 ? ` · 🔥 ${racha} días seguidos` : '';
-      counterEl.textContent = `Conectados desde ${etiquetaDias} · ${etiquetaMsgs}${etiquetaRacha}`;
-    } catch (e) {
-      counterEl.textContent = '';
-    }
-  }
-  loadCounter();
-
-  // ---- Partículas de fondo ----
-  let particlesRAF = null;
-  function initParticles() {
-    const canvas = document.getElementById('particles');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let w, h, particles;
-
-    function resize() {
-      w = canvas.width = canvas.offsetWidth;
-      h = canvas.height = canvas.offsetHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    const N = 34;
-    particles = Array.from({ length: N }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      vx: (Math.random() - 0.5) * 0.25,
-      vy: (Math.random() - 0.5) * 0.25,
-    }));
-
-    function tick() {
-      ctx.clearRect(0, 0, w, h);
-      for (const p of particles) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < 0 || p.y > h) p.vy *= -1;
-      }
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const a = particles[i], b = particles[j];
-          const dist = Math.hypot(a.x - b.x, a.y - b.y);
-          if (dist < 110) {
-            ctx.strokeStyle = `rgba(34,211,238,${(1 - dist / 110) * 0.25})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-      for (const p of particles) {
-        ctx.fillStyle = 'rgba(103,232,249,0.6)';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      particlesRAF = requestAnimationFrame(tick);
-    }
-    tick();
-  }
-  initParticles();
-
-  function stopParticles() {
-    if (particlesRAF) cancelAnimationFrame(particlesRAF);
-  }
-
-  async function join(nombreQueBuscas) {
-    desbloquearAudio();
-    joinError.classList.add('hidden');
-    nodeInput.disabled = true;
-    try {
-      const res = await fetch('/api/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombreQueBuscas })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        joinError.textContent = data.error || 'No se pudo entrar.';
-        joinError.classList.remove('hidden');
-        nodeInput.disabled = false;
-        nodeInput.value = '';
-        animLock = false;
-        nodeInput.focus();
-        return;
-      }
-      miNombre = data.miNombre;
-      miNodo = nombreQueBuscas;
-      document.getElementById('partner-name').textContent = miNodo;
-      stopParticles();
-      joinScreen.classList.add('hidden');
-      chatScreen.classList.remove('hidden');
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-      await refreshMessages(true);
-      await loadStickerPacks();
-      enviarPresencia();
-      pollPresence();
-      pollTimer = setInterval(() => { refreshMessages(false); pollTyping(); }, POLL_MS);
-      presenceHeartbeat = setInterval(enviarPresencia, 5000);
-      presencePoll = setInterval(pollPresence, 5000);
-    } catch (e) {
-      joinError.textContent = 'Error de conexión. Intenta de nuevo.';
-      joinError.classList.remove('hidden');
-      nodeInput.disabled = false;
-      nodeInput.value = '';
-      animLock = false;
-      nodeInput.focus();
-    }
-  }
-
-  async function refreshMessages(esInicial) {
-    try {
-      const res = await fetch('/api/messages');
-      const msgs = await res.json();
-      if (!esInicial && msgs.length > lastMsgCount) {
-        const nuevo = msgs[msgs.length - 1];
-        if (nuevo.de !== miNombre) notificarNuevoMensaje(nuevo);
-      }
-      lastMsgCount = msgs.length;
-      lastMsgs = msgs;
-      renderMessages(msgs);
-      actualizarRacha(msgs);
-      if (!document.hidden && document.hasFocus() && msgs.length) {
-        marcarLeido(msgs[msgs.length - 1].hora);
-      }
-    } catch (e) {
-      console.error('No se pudo actualizar', e);
-    }
-  }
-
-  function notificarNuevoMensaje(msg) {
-    let preview = 'Nuevo mensaje';
-    if (msg.texto) preview = msg.texto;
-    else if (msg.sticker) preview = 'te mandó un sticker';
-    else if (msg.imagen) preview = 'te mandó una foto';
-    else if (msg.audio) preview = 'te mandó una nota de voz';
-
-    reproducirTono();
-    if (navigator.vibrate) navigator.vibrate(40);
-
-    if (document.hidden || !document.hasFocus()) {
-      startTitleFlash();
-      if ('Notification' in window && Notification.permission === 'granted') {
-        try { new Notification('NEXUS', { body: preview }); } catch (e) {}
-      }
-    }
-  }
-
-  // ---- Sonido de notificación (Web Audio API, sin archivos externos) ----
-  function desbloquearAudio() {
-    try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); }
-    catch (e) {}
-  }
-  function reproducirTono() {
-    if (!audioCtx) return;
-    try {
-      const t = audioCtx.currentTime;
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(880, t);
-      o.frequency.exponentialRampToValueAtTime(587, t + 0.18);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(t); o.stop(t + 0.35);
-    } catch (e) {}
-  }
-
-  function startTitleFlash() {
-    if (titleFlashTimer) return;
-    let on = false;
-    titleFlashTimer = setInterval(() => {
-      document.title = on ? originalTitle : '💬 Nuevo mensaje';
-      on = !on;
-    }, 1000);
-  }
-  function stopTitleFlash() {
-    if (titleFlashTimer) { clearInterval(titleFlashTimer); titleFlashTimer = null; }
-    document.title = originalTitle;
-  }
-  window.addEventListener('focus', () => { stopTitleFlash(); if (lastMsgs.length) marcarLeido(lastMsgs[lastMsgs.length - 1].hora); });
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      stopTitleFlash();
-      if (lastMsgs.length) marcarLeido(lastMsgs[lastMsgs.length - 1].hora);
-    }
-  });
-
-  async function pollTyping() {
-    try {
-      const res = await fetch('/api/typing');
-      const data = await res.json();
-      if (data && data.de !== miNombre) {
-        typingBanner.innerHTML = `${escapeHtml(data.de)} está escribiendo<span class="typing-dots"><span></span><span></span><span></span></span>`;
-        typingBanner.classList.add('visible');
-      } else {
-        typingBanner.classList.remove('visible');
-        typingBanner.textContent = '';
-      }
-    } catch (e) {}
-  }
-
-  // ---- Presencia (en línea / última conexión) ----
-  function enviarPresencia(readUpTo) {
-    if (!miNombre) return;
-    const body = { de: miNombre };
-    if (readUpTo) body.readUpTo = readUpTo;
-    fetch('/api/presence', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    }).catch(() => {});
-  }
-
-  function marcarLeido(hora) {
-    enviarPresencia(hora);
-  }
-
-  function formatUltimaConexion(ts) {
-    if (!ts) return 'Sin conexión aún';
-    const d = new Date(ts);
-    const hoy = new Date();
-    const esHoy = d.toDateString() === hoy.toDateString();
-    const hora = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-    if (esHoy) return `Última vez hoy a las ${hora}`;
-    const fecha = d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
-    return `Última vez el ${fecha} a las ${hora}`;
-  }
-
-  function dispararPulsoConexion() {
-    const pulse = document.getElementById('connect-pulse');
-    if (!pulse) return;
-    pulse.classList.remove('active');
-    void pulse.offsetWidth; // reinicia la animación si ya estaba corriendo
-    pulse.classList.add('active');
-  }
-
-  async function pollPresence() {
-    if (!miNodo) return;
-    try {
-      const res = await fetch('/api/presence');
-      const estado = await res.json();
-      const info = estado[miNodo];
-      const dot = document.getElementById('partner-dot');
-      const lastSeenEl = document.getElementById('partner-lastseen');
-      if (!info) return;
-      if (info.online) {
-        dot.classList.add('online');
-        lastSeenEl.textContent = 'En línea';
-        if (partnerWasOnline === false) dispararPulsoConexion();
-        partnerWasOnline = true;
-      } else {
-        dot.classList.remove('online');
-        lastSeenEl.textContent = formatUltimaConexion(info.lastSeen);
-        partnerWasOnline = false;
-      }
-      if (info.readUpTo !== partnerReadUpTo) {
-        partnerReadUpTo = info.readUpTo || 0;
-        if (lastMsgs.length) renderMessages(lastMsgs);
-      }
-    } catch (e) {}
-  }
-
-  // ---- Racha de días conectados ----
-  function calcularRacha(msgs) {
-    if (!msgs.length) return 0;
-    const dias = new Set(msgs.map((m) => new Date(m.hora).toDateString()));
-    const cursor = new Date();
-    if (!dias.has(cursor.toDateString())) cursor.setDate(cursor.getDate() - 1);
-    let racha = 0;
-    while (dias.has(cursor.toDateString())) {
-      racha++;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    return racha;
-  }
-
-  function actualizarRacha(msgs) {
-    const badge = document.getElementById('streak-badge');
-    if (!badge) return;
-    const racha = calcularRacha(msgs);
-    if (racha >= 2) {
-      badge.textContent = `🔥 ${racha}`;
-      badge.classList.remove('hidden');
-    } else {
-      badge.classList.add('hidden');
-    }
-  }
-
-  // Marcar presencia también cuando la pestaña vuelve a tener foco,
-  // y detener los timers si el usuario cierra/recarga la ventana.
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) enviarPresencia(); });
-  window.addEventListener('beforeunload', () => {
-    if (presenceHeartbeat) clearInterval(presenceHeartbeat);
-    if (presencePoll) clearInterval(presencePoll);
-  });
-
-  let lastTypingPost = 0;
-  draftInput.addEventListener('input', () => {
-    const now = Date.now();
-    if (now - lastTypingPost > 1500) {
-      lastTypingPost = now;
-      fetch('/api/typing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ de: miNombre })
-      }).catch(() => {});
-    }
-  });
-
-  function formatHora(ts) {
-    return new Date(ts).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  function findSticker(packId, index) {
-    const pack = stickerPacks.find(p => p.id === packId);
-    if (!pack) return null;
-    return pack.stickers[index] || null;
-  }
-
-  function renderReactionChips(m) {
-    if (!m.reacciones) return '';
-    const chips = Object.entries(m.reacciones)
-      .filter(([, lista]) => lista.length > 0)
-      .map(([emoji, lista]) => {
-        const mineReacted = lista.includes(miNombre);
-        return `<span class="reaction-chip ${mineReacted ? 'mine-reacted' : ''}" data-id="${m.id}" data-emoji="${emoji}">${emoji} ${lista.length}</span>`;
-      }).join('');
-    return chips ? `<div class="reaction-chips">${chips}</div>` : '';
-  }
-
-  function renderTicks(m, mine) {
-    if (!mine) return '';
-    const leido = partnerReadUpTo >= m.hora;
-    return `<span class="ticks ${leido ? 'read' : ''}">${leido ? '✓✓' : '✓'}</span>`;
-  }
-
-  function renderMessages(msgs) {
-    if (!msgs.length) {
-      messagesEl.innerHTML = '<p class="empty-msg">Todavía no hay mensajes. Escribe el primero.</p>';
-      return;
-    }
-    const wasAtBottom = messagesEl.scrollTop + messagesEl.clientHeight >= messagesEl.scrollHeight - 40;
-    messagesEl.innerHTML = msgs.map(m => {
-      const mine = m.de === miNombre;
-      let inner;
-      if (m.sticker) {
-        const src = findSticker(m.sticker.packId, m.sticker.index);
-        inner = `<div class="bubble media-bubble" data-id="${m.id}">${src ? `<img src="${src}" alt="sticker"/>` : '<div class="sticker-empty">sticker no disponible</div>'}<div class="time">${formatHora(m.hora)}${renderTicks(m, mine)}</div></div>`;
-      } else if (m.imagen) {
-        inner = `<div class="bubble media-bubble" data-id="${m.id}"><img src="${m.imagen}" alt="foto"/><div class="time">${formatHora(m.hora)}${renderTicks(m, mine)}</div></div>`;
-      } else if (m.audio) {
-        inner = `<div class="bubble audio-bubble ${mine ? 'mine' : 'theirs'}" data-id="${m.id}"><audio controls src="${m.audio}"></audio><div class="time">${formatHora(m.hora)}${renderTicks(m, mine)}</div></div>`;
-      } else {
-        inner = `<div class="bubble ${mine ? 'mine' : 'theirs'}" data-id="${m.id}">${!mine ? `<div class="sender">${escapeHtml(m.de)}</div>` : ''}<div class="text">${escapeHtml(m.texto || '')}</div><div class="time">${formatHora(m.hora)}${renderTicks(m, mine)}</div></div>`;
-      }
-      return `<div class="msg-row ${mine ? 'mine' : 'theirs'}">${inner}${renderReactionChips(m)}</div>`;
-    }).join('');
-    if (wasAtBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
-    attachLongPress();
-    attachChipListeners();
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  // ---- Envío de mensajes ----
-  composer.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const texto = draftInput.value.trim();
-    if (!texto) return;
-    draftInput.value = '';
-    sendBtn.disabled = true;
-    try { await enviarMensaje({ de: miNombre, texto }); }
-    finally { sendBtn.disabled = false; }
-  });
-
-  async function enviarMensaje(payload) {
-    try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const msgs = await res.json();
-      lastMsgCount = msgs.length;
-      lastMsgs = msgs;
-      renderMessages(msgs);
-      actualizarRacha(msgs);
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    } catch (e) {
-      console.error('No se pudo enviar', e);
-    }
-  }
-
-  pensandoBtn.addEventListener('click', () => {
-    enviarMensaje({ de: miNombre, texto: '💭 Pensando en ti' });
-  });
-
-  // ---- Menú adjuntar (sticker / foto) ----
-  attachToggle.addEventListener('click', () => {
-    closeAllPanels(attachMenu.classList.contains('hidden') ? attachMenu : null);
-  });
-  optSticker.addEventListener('click', () => { closeAllPanels(stickerPanel); });
-  optPhoto.addEventListener('click', () => { closeAllPanels(null); photoInput.click(); });
-
-  function closeAllPanels(panelToShow) {
-    attachMenu.classList.add('hidden');
-    stickerPanel.classList.add('hidden');
-    reactionBar.classList.add('hidden');
-    if (panelToShow) panelToShow.classList.remove('hidden');
-  }
-
-  // ---- Stickers ----
-  async function loadStickerPacks() {
-    try {
-      const res = await fetch('/api/stickers');
-      stickerPacks = await res.json();
-      if (!activePackId && stickerPacks.length) activePackId = stickerPacks[0].id;
-      renderStickerTabs();
-      renderStickerGrid();
-    } catch (e) { console.error('No se pudieron cargar los stickers', e); }
-  }
-
-  function renderStickerTabs() {
-    const tabsHtml = stickerPacks.map(p => `<div class="sticker-tab ${p.id === activePackId ? 'active' : ''}" data-pack="${p.id}">${escapeHtml(p.nombre)}</div>`).join('');
-    stickerTabs.innerHTML = tabsHtml + `<div class="sticker-tab add-tab" id="add-pack-tab">+ paquete</div>`;
-    stickerTabs.querySelectorAll('.sticker-tab[data-pack]').forEach(el => {
-      el.addEventListener('click', () => { activePackId = el.dataset.pack; renderStickerTabs(); renderStickerGrid(); });
-    });
-    document.getElementById('add-pack-tab').addEventListener('click', () => fileInput.click());
-  }
-
-  function renderStickerGrid() {
-    const pack = stickerPacks.find(p => p.id === activePackId);
-    if (!pack) { stickerGrid.innerHTML = `<div class="sticker-empty">Todavía no hay paquetes.<br/>Toca "+ paquete" para subir el primero.</div>`; return; }
-    stickerGrid.innerHTML = pack.stickers.map((src, i) => `<img src="${src}" data-index="${i}" />`).join('');
-    stickerGrid.querySelectorAll('img').forEach(img => {
-      img.addEventListener('click', async () => {
-        closeAllPanels(null);
-        await enviarMensaje({ de: miNombre, sticker: { packId: pack.id, index: Number(img.dataset.index) } });
-      });
-    });
-  }
-
-  fileInput.addEventListener('change', async () => {
-    const files = Array.from(fileInput.files || []);
-    if (!files.length) return;
-    const nombre = prompt('¿Cómo se llama este paquete de stickers?', 'Mi paquete');
-    if (!nombre) { fileInput.value = ''; return; }
-    attachToggle.disabled = true;
-    try {
-      const stickers = [];
-      for (const file of files.slice(0, 30)) stickers.push(await resizeImage(file, 320, 0.8));
-      const res = await fetch('/api/stickers', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, stickers })
-      });
-      const packs = await res.json();
-      if (Array.isArray(packs)) {
-        stickerPacks = packs;
-        activePackId = packs[packs.length - 1]?.id || activePackId;
-        renderStickerTabs(); renderStickerGrid();
-      }
-    } catch (e) {
-      alert('No se pudo subir el paquete. Intenta con imágenes más ligeras.');
-    } finally { attachToggle.disabled = false; fileInput.value = ''; }
-  });
-
-  // ---- Foto normal ----
-  photoInput.addEventListener('change', async () => {
-    const file = photoInput.files && photoInput.files[0];
-    if (!file) return;
-    sendBtn.disabled = true;
-    try {
-      const imagen = await resizeImage(file, 900, 0.82);
-      await enviarMensaje({ de: miNombre, imagen });
-    } catch (e) {
-      alert('No se pudo enviar la foto.');
-    } finally { sendBtn.disabled = false; photoInput.value = ''; }
-  });
-
-  function resizeImage(file, maxSize, calidad) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          let { width, height } = img;
-          if (width > height && width > maxSize) { height = Math.round(height * (maxSize / width)); width = maxSize; }
-          else if (height > maxSize) { width = Math.round(width * (maxSize / height)); height = maxSize; }
-          const canvas = document.createElement('canvas');
-          canvas.width = width; canvas.height = height;
-          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/webp', calidad));
-        };
-        img.onerror = reject;
-        img.src = reader.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // ---- Notas de voz ----
-  async function startRecording() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunks = [];
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-      mediaRecorder.onstop = async () => {
-        stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        if (blob.size < 200) return;
-        const reader = new FileReader();
-        reader.onload = async () => {
-          await enviarMensaje({ de: miNombre, audio: reader.result });
-        };
-        reader.readAsDataURL(blob);
-      };
-      mediaRecorder.start();
-      recordBtn.classList.add('recording');
-      recordBtn.textContent = '🔴';
-    } catch (e) {
-      alert('No se pudo acceder al micrófono.');
-    }
-  }
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    recordBtn.classList.remove('recording');
-    recordBtn.textContent = '🎤';
-  }
-  recordBtn.addEventListener('mousedown', startRecording);
-  recordBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
-  recordBtn.addEventListener('mouseup', stopRecording);
-  recordBtn.addEventListener('mouseleave', stopRecording);
-  recordBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
-
-  // ---- Reacciones (mantener presionado un mensaje) ----
-  function attachLongPress() {
-    document.querySelectorAll('.bubble[data-id]').forEach(bubble => {
-      let timer;
-      const start = () => { timer = setTimeout(() => openReactionBar(bubble.dataset.id), 450); };
-      const cancel = () => clearTimeout(timer);
-      bubble.addEventListener('touchstart', start);
-      bubble.addEventListener('touchend', cancel);
-      bubble.addEventListener('touchmove', cancel);
-      bubble.addEventListener('mousedown', start);
-      bubble.addEventListener('mouseup', cancel);
-      bubble.addEventListener('mouseleave', cancel);
-    });
-  }
-
-  function attachChipListeners() {
-    document.querySelectorAll('.reaction-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        reaccionar(chip.dataset.id, chip.dataset.emoji);
-      });
-    });
-  }
-
-  function openReactionBar(messageId) {
-    reactionTarget = messageId;
-    closeAllPanels(reactionBar);
-  }
-
-  reactionBar.querySelectorAll('span[data-emoji]').forEach(span => {
-    span.addEventListener('click', () => {
-      if (reactionTarget) reaccionar(reactionTarget, span.dataset.emoji);
-      closeAllPanels(null);
-    });
-  });
-
-  async function reaccionar(messageId, emoji) {
-    try {
-      const res = await fetch('/api/messages', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'reaccionar', messageId, emoji, de: miNombre })
-      });
-      const msgs = await res.json();
-      lastMsgs = msgs;
-      renderMessages(msgs);
-    } catch (e) {}
-  }
-
-  // ---- PWA: registrar service worker ----
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    });
-  }
-</script>
-</body>
-</html>
+  // ---- Estado de videollamada ----
+  const RTC_CONFIG = { iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ]};
+  let callPollTimer = null;
+  let pc = null;
+  let localStream = null;
+  let callState = 'inactiva'; // inactiva | llamando_saliente | ll
