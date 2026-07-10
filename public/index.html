@@ -24,29 +24,60 @@
   .screen > .card { position: relative; z-index: 1; }
   .hidden { display: none !important; }
   .logo-wrap { margin-bottom: 8px; }
+  .dove-logo-img {
+    width: 176px; height: auto; filter: drop-shadow(0 0 18px rgba(34,211,238,0.35));
+    animation: dove-float 3.4s ease-in-out infinite;
+  }
+  @keyframes dove-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
   h1.brand { font-size: 2.4rem; font-weight: 300; letter-spacing: 0.25em; color: #67e8f9; text-shadow: 0 0 20px rgba(34,211,238,0.6); margin: 0 0 16px; text-align: center; }
   p.tag1 { color: rgba(207,250,254,0.7); font-size: 0.9rem; text-align: center; margin: 0 0 4px; }
-  p.tag2 { color: rgba(207,250,254,0.5); font-size: 0.78rem; text-align: center; margin: 0 0 20px; line-height: 1.5; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
-  #phrase-canvas { display: block; width: 100%; height: 78px; margin: 0 0 20px; }
   p.counter { color: #22d3ee; font-size: 0.72rem; text-align: center; margin: 0 0 28px; letter-spacing: 0.05em; min-height: 16px; }
   .card { width: 100%; max-width: 360px; }
-  .node-label { color: rgba(6,182,212,0.7); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.2em; text-align: center; margin-bottom: 16px; }
-  .nodes-row { display: flex; gap: 16px; justify-content: center; margin-bottom: 8px; }
-  button.node-card {
-    flex: 1; background: rgba(8,51,68,0.25); border: 1px solid rgba(21,94,117,0.6);
-    color: #cffafe; font-family: inherit; border-radius: 16px; padding: 20px 10px;
-    cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  .node-input-wrap { margin: 4px 0 4px; }
+  .node-input {
+    width: 100%; box-sizing: border-box; padding: 16px 18px; border-radius: 16px;
+    border: 1px solid rgba(21,94,117,0.6); background: rgba(8,51,68,0.35);
+    color: #e0fbff; font-family: inherit; font-size: 1rem; text-align: center;
+    letter-spacing: 0.2em; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
   }
-  button.node-card:hover, button.node-card:active { background: rgba(22,78,99,0.4); border-color: #22d3ee; box-shadow: 0 0 20px rgba(34,211,238,0.3); transform: translateY(-2px); }
-  button.node-card:disabled { opacity: 0.4; cursor: not-allowed; }
-  .node-icon-ring {
-    width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    background: #083344; border: 2px solid #22d3ee; box-shadow: 0 0 15px rgba(34,211,238,0.5); font-size: 1.6rem;
-  }
-  .node-name { font-size: 0.8rem; letter-spacing: 0.1em; color: #a5f3fc; }
+  .node-input::placeholder { color: rgba(207,250,254,0.35); letter-spacing: normal; }
+  .node-input:focus { border-color: #22d3ee; box-shadow: 0 0 20px rgba(34,211,238,0.3); }
+  .node-input:disabled { opacity: 0.5; }
   .error-msg { color: #f87171; font-size: 0.78rem; text-align: center; margin-top: 12px; line-height: 1.5; }
   .footnote { color: #164e63; font-size: 0.72rem; text-align: center; margin-top: 28px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+  .anim-overlay {
+    position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+    background: rgba(2,10,14,0.82);
+  }
+  .anim-overlay.hidden { display: none; }
+  .anim-icon { font-size: 5.5rem; display: inline-block; }
+  @keyframes rayo-zap {
+    0% { transform: scale(0.3) rotate(-10deg); opacity: 0; filter: drop-shadow(0 0 0 rgba(125,211,252,0)); }
+    18% { transform: scale(1.35) rotate(8deg); opacity: 1; filter: drop-shadow(0 0 25px rgba(125,211,252,0.95)); }
+    35% { transform: scale(0.9) rotate(-5deg); }
+    50% { transform: scale(1.2) rotate(5deg); filter: drop-shadow(0 0 35px rgba(224,242,254,1)); }
+    70% { transform: scale(0.98) rotate(-2deg); }
+    100% { transform: scale(1.05) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 25px rgba(125,211,252,0.9)); }
+  }
+  .anim-icon.rayo { animation: rayo-zap 0.9s ease-out forwards; }
+  @keyframes flash-white {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+  .anim-overlay.rayo-flash::before {
+    content: ''; position: absolute; inset: 0; background: #e0f2fe; animation: flash-white 0.35s ease-out;
+  }
+  @keyframes llama-burn {
+    0% { transform: scale(0.4) translateY(12px) rotate(0deg); opacity: 0; }
+    20% { transform: scale(1.2) translateY(-6px) rotate(-5deg); opacity: 1; filter: drop-shadow(0 0 25px rgba(251,146,60,0.95)); }
+    40% { transform: scale(0.92) translateY(0) rotate(4deg); }
+    60% { transform: scale(1.12) translateY(-4px) rotate(-4deg); filter: drop-shadow(0 0 35px rgba(248,113,113,1)); }
+    80% { transform: scale(0.98) rotate(3deg); }
+    100% { transform: scale(1.05) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 25px rgba(248,113,113,0.9)); }
+  }
+  .anim-icon.llama { animation: llama-burn 0.9s ease-out forwards; }
 
   .chat-app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; position: relative; }
   header.chat-header { border-bottom: 1px solid rgba(22,78,99,0.5); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
@@ -141,46 +172,21 @@
   <canvas id="particles"></canvas>
   <div class="card">
     <div class="logo-wrap" style="display:flex; justify-content:center;">
-      <svg viewBox="0 0 200 120" width="160" height="96" fill="none">
-        <g stroke="#22d3ee" stroke-width="1" opacity="0.55">
-          <path d="M40 60 L100 20 L160 60 L100 40 Z" />
-          <path d="M40 60 L100 100 L160 60 L100 80 Z" />
-          <path d="M40 60 L100 20 L160 60 L100 100 Z" />
-        </g>
-        <line x1="40" y1="60" x2="160" y2="60" stroke="#67e8f9" stroke-width="2" />
-        <circle cx="40" cy="60" r="9" fill="#083344" stroke="#22d3ee" stroke-width="2" />
-        <circle cx="40" cy="60" r="4" fill="#a5f3fc" />
-        <circle cx="160" cy="60" r="9" fill="#083344" stroke="#22d3ee" stroke-width="2" />
-        <circle cx="160" cy="60" r="4" fill="#a5f3fc" />
-        <circle cx="40" cy="60" r="9" fill="none" stroke="#22d3ee" stroke-width="1">
-          <animate attributeName="r" values="9;18;9" dur="2.5s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="160" cy="60" r="9" fill="none" stroke="#22d3ee" stroke-width="1">
-          <animate attributeName="r" values="9;18;9" dur="2.5s" repeatCount="indefinite" begin="0.4s" />
-          <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" begin="0.4s" />
-        </circle>
-      </svg>
+      <img src="/logo-nexus.png" alt="Nexus" class="dove-logo-img" width="176" height="187" />
     </div>
-    <h1 class="brand">NEXUS</h1>
-    <p class="tag1">Nexus fue creado pensando en ti.</p>
-    <p class="tag2 sr-only">Un nodo no es un lugar. Es alguien que decidiste no perder.</p>
-    <canvas id="phrase-canvas" aria-hidden="true"></canvas>
+    <p class="tag1">Tu Paloma Digital Personal</p>
     <p class="counter" id="counter"></p>
 
-    <div class="nodes-row">
-      <button class="node-card" id="btn-noriega">
-        <span class="node-icon-ring">🛹</span>
-        <span class="node-name">Noriega</span>
-      </button>
-      <button class="node-card" id="btn-zapien">
-        <span class="node-icon-ring">💻</span>
-        <span class="node-name">Zapien</span>
-      </button>
+    <div class="node-input-wrap">
+      <input type="password" id="node-input" class="node-input" placeholder="Escribe el nombre del nodo" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" />
     </div>
     <p class="error-msg hidden" id="join-error"></p>
 
-    <p class="footnote">🔒 Toca el nodo de la otra persona, no el tuyo.</p>
+    <p class="footnote">🔒 Escribe el nombre de la otra persona, no el tuyo.</p>
+  </div>
+
+  <div class="anim-overlay hidden" id="anim-overlay">
+    <span class="anim-icon" id="anim-icon"></span>
   </div>
 </div>
 
@@ -188,11 +194,7 @@
   <div class="connect-pulse" id="connect-pulse"></div>
   <header class="chat-header">
     <div class="brand-mini">
-      <svg viewBox="0 0 200 120" width="32" height="19" fill="none">
-        <line x1="40" y1="60" x2="160" y2="60" stroke="#67e8f9" stroke-width="4" />
-        <circle cx="40" cy="60" r="14" fill="#083344" stroke="#22d3ee" stroke-width="3" />
-        <circle cx="160" cy="60" r="14" fill="#083344" stroke="#22d3ee" stroke-width="3" />
-      </svg>
+      <img src="/icon-192.png" alt="" width="22" height="22" style="border-radius:6px;" aria-hidden="true" />
       <span>NEXUS</span>
       <span class="streak-badge hidden" id="streak-badge"></span>
     </div>
@@ -275,8 +277,45 @@
   const typingBanner = document.getElementById('typing-banner');
   const reactionBar = document.getElementById('reaction-bar');
 
-  document.getElementById('btn-zapien').addEventListener('click', () => join('Zapien'));
-  document.getElementById('btn-noriega').addEventListener('click', () => join('Noriega'));
+  const nodeInput = document.getElementById('node-input');
+  const animOverlay = document.getElementById('anim-overlay');
+  const animIcon = document.getElementById('anim-icon');
+  let animLock = false;
+
+  function normalizarNodo(s) {
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  }
+
+  function dispararAnimacionNodo(tipo, nombreQueBuscas) {
+    if (animLock) return;
+    animLock = true;
+    desbloquearAudio();
+    nodeInput.disabled = true;
+    animIcon.textContent = tipo === 'rayo' ? '⚡' : '🔥';
+    animIcon.className = 'anim-icon ' + tipo;
+    animOverlay.classList.remove('hidden');
+    animOverlay.classList.toggle('rayo-flash', tipo === 'rayo');
+    setTimeout(() => {
+      animOverlay.classList.add('hidden');
+      animOverlay.classList.remove('rayo-flash');
+      animIcon.className = 'anim-icon';
+      join(nombreQueBuscas);
+    }, 900);
+  }
+
+  function manejarInputNodo() {
+    const val = normalizarNodo(nodeInput.value);
+    if (val === 'zapien') {
+      dispararAnimacionNodo('rayo', 'Zapien');
+    } else if (val === 'noriega') {
+      dispararAnimacionNodo('llama', 'Noriega');
+    }
+  }
+
+  nodeInput.addEventListener('input', manejarInputNodo);
+  nodeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') manejarInputNodo();
+  });
 
   // ---- Contador real de conexión ----
   async function loadCounter() {
@@ -359,77 +398,12 @@
 
   function stopParticles() {
     if (particlesRAF) cancelAnimationFrame(particlesRAF);
-    if (phraseRAF) cancelAnimationFrame(phraseRAF);
   }
-
-  // ---- Frase que se arma con partículas ----
-  let phraseRAF = null;
-  function initPhraseParticles() {
-    const canvas = document.getElementById('phrase-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width = canvas.offsetWidth;
-    const h = canvas.height = canvas.offsetHeight;
-
-    // Dibujar la frase en un canvas oculto para saber dónde va cada letra
-    const off = document.createElement('canvas');
-    off.width = w; off.height = h;
-    const octx = off.getContext('2d');
-    octx.fillStyle = '#fff';
-    octx.textAlign = 'center';
-    octx.textBaseline = 'middle';
-    octx.font = '700 14px ui-monospace, Menlo, Consolas, monospace';
-    octx.fillText('Un nodo no es un lugar.', w / 2, h * 0.28);
-    octx.fillText('Es alguien que decidiste', w / 2, h * 0.62);
-    octx.fillText('no perder.', w / 2, h * 0.92);
-
-    const data = octx.getImageData(0, 0, w, h).data;
-    const targets = [];
-    const stride = 1;
-    for (let y = 0; y < h; y += stride) {
-      for (let x = 0; x < w; x += stride) {
-        if (data[(y * w + x) * 4 + 3] > 120) targets.push({ x, y });
-      }
-    }
-
-    const particles = targets.map(t => ({
-      x: t.x + (Math.random() - 0.5) * w * 0.7,
-      y: t.y + (Math.random() < 0.5 ? -1 : 1) * (h * 0.6 + Math.random() * 30),
-      tx: t.x,
-      ty: t.y,
-      op: 0,
-    }));
-
-    function tick() {
-      ctx.clearRect(0, 0, w, h);
-      let maxDist = 0;
-      for (const p of particles) {
-        p.x += (p.tx - p.x) * 0.16;
-        p.y += (p.ty - p.y) * 0.16;
-        const dist = Math.hypot(p.tx - p.x, p.ty - p.y);
-        if (dist > maxDist) maxDist = dist;
-        const target = dist < 3 ? 1 : 0.55;
-        p.op += (target - p.op) * 0.14;
-        ctx.shadowBlur = dist < 3 ? 4 : 0;
-        ctx.shadowColor = 'rgba(103,232,249,0.9)';
-        ctx.fillStyle = `rgba(165,243,252,${p.op})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.shadowBlur = 0;
-      if (maxDist < 0.6) return; // ya se formó: dejamos de animar para ahorrar batería
-      phraseRAF = requestAnimationFrame(tick);
-    }
-    tick();
-  }
-  initPhraseParticles();
 
   async function join(nombreQueBuscas) {
     desbloquearAudio();
     joinError.classList.add('hidden');
-    document.getElementById('btn-zapien').disabled = true;
-    document.getElementById('btn-noriega').disabled = true;
+    nodeInput.disabled = true;
     try {
       const res = await fetch('/api/join', {
         method: 'POST',
@@ -440,8 +414,10 @@
       if (!res.ok || !data.ok) {
         joinError.textContent = data.error || 'No se pudo entrar.';
         joinError.classList.remove('hidden');
-        document.getElementById('btn-zapien').disabled = false;
-        document.getElementById('btn-noriega').disabled = false;
+        nodeInput.disabled = false;
+        nodeInput.value = '';
+        animLock = false;
+        nodeInput.focus();
         return;
       }
       miNombre = data.miNombre;
@@ -463,8 +439,10 @@
     } catch (e) {
       joinError.textContent = 'Error de conexión. Intenta de nuevo.';
       joinError.classList.remove('hidden');
-      document.getElementById('btn-zapien').disabled = false;
-      document.getElementById('btn-noriega').disabled = false;
+      nodeInput.disabled = false;
+      nodeInput.value = '';
+      animLock = false;
+      nodeInput.focus();
     }
   }
 
